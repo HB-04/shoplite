@@ -9,22 +9,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:shoplite/main.dart';
+import 'package:shoplite/core/di/service_locator.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('ShopLite app smoke test', (WidgetTester tester) async {
+    // Initialize ServiceLocator for testing
+    await ServiceLocator().init();
+    
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const ShopLiteApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // Wait for initial loading to complete
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Wait for async data loading to complete
+    await tester.pumpAndSettle();
+
+    // Verify that our app starts with the catalog page.
+    expect(find.text('ShopLite'), findsOneWidget);
+    expect(find.byIcon(Icons.search), findsOneWidget);
+    expect(find.byIcon(Icons.shopping_cart_outlined), findsOneWidget);
+
+    // Tap the theme toggle button.
+    await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+    await tester.pumpAndSettle();
+
+    // The app should still show the same elements after theme toggle.
+    expect(find.text('ShopLite'), findsOneWidget);
+    
+    // Clean up
+    ServiceLocator().dispose();
   });
 }
