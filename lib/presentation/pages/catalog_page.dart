@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
+import '../../domain/entities/product.dart';
+import '../../data/datasources/mock_product_datasource.dart';
 
 class CatalogPage extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -15,13 +17,77 @@ class CatalogPage extends StatefulWidget {
 
 class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _categories = ['All Categories', 'Electronics', 'Clothing', 'Books', 'Home'];
+  List<String> _categories = ['All Categories'];
   String _selectedCategory = 'All Categories';
+  List<Product> _products = [];
+  List<Product> _filteredProducts = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final categories = MockProductDataSource.getCategories();
+      final products = await MockProductDataSource.getProductsAsync();
+
+      setState(() {
+        _categories = categories;
+        _products = products;
+        _filteredProducts = products;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading products: $e')),
+        );
+      }
+    }
+  }
+
+  void _filterProducts() {
+    setState(() {
+      var filtered = _products;
+
+      // Apply category filter
+      if (_selectedCategory != 'All Categories') {
+        filtered = filtered.where((product) => product.category == _selectedCategory).toList();
+      }
+
+      // Apply search filter
+      final query = _searchController.text.toLowerCase();
+      if (query.isNotEmpty) {
+        filtered = filtered
+            .where((product) =>
+                product.title.toLowerCase().contains(query) ||
+                product.description.toLowerCase().contains(query) ||
+                product.category.toLowerCase().contains(query))
+            .toList();
+      }
+
+      _filteredProducts = filtered;
+    });
+  }
+
+  Future<void> _refreshProducts() async {
+    await _loadData();
   }
 
   @override
@@ -58,7 +124,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 prefixIcon: Icon(Icons.search),
               ),
               onChanged: (value) {
-                // TODO: Implement search
+                _filterProducts();
               },
             ),
           ),
@@ -83,6 +149,7 @@ class _CatalogPageState extends State<CatalogPage> {
                       setState(() {
                         _selectedCategory = category;
                       });
+                      _filterProducts();
                     },
                   ),
                 );
@@ -90,27 +157,33 @@ class _CatalogPageState extends State<CatalogPage> {
             ),
           ),
           
-          // Product Grid (Placeholder)
+          // Product Grid
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                // TODO: Implement refresh
-                await Future.delayed(const Duration(seconds: 1));
-              },
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: 6, // Placeholder count
-                itemBuilder: (context, index) {
-                  return _buildProductCard(index);
-                },
-              ),
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredProducts.isEmpty
+                    ? const Center(
+                        child: Text(
+                          AppStrings.noProductsFound,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _refreshProducts,
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: _filteredProducts.length,
+                          itemBuilder: (context, index) {
+                            return _buildProductCard(_filteredProducts[index]);
+                          },
+                        ),
+                      ),
           ),
         ],
       ),
@@ -125,59 +198,93 @@ class _CatalogPageState extends State<CatalogPage> {
     );
   }
 
-  Widget _buildProductCard(int index) {
+  Widget _buildProductCard(Product product) {
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: const Icon(
-                Icons.image,
-                size: 48,
-                color: Colors.grey,
-              ),
+      child: InkWell(
+        onTap: () {
+          // TODO: Navigate to product detail page
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Tapped on ${product.title}'),
+              duration: const Duration(seconds: 1),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Product ${index + 1}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '\$${(index + 1) * 10}.99',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Image.network(
+                    product.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.image,
+                        size: 48,
+                        color: Colors.grey,
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
-                    const SizedBox(width: 4),
-                    Text(
-                      '4.${index + 1}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 16, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text(
+                        product.rating.toString(),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${product.reviewCount})',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

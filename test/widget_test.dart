@@ -15,6 +15,12 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ShopLiteApp());
 
+    // Wait for initial loading to complete
+    await tester.pump();
+    
+    // Wait for async data loading to complete
+    await tester.pumpAndSettle();
+
     // Verify that our app starts with the catalog page.
     expect(find.text('ShopLite'), findsOneWidget);
     expect(find.byIcon(Icons.search), findsOneWidget);
@@ -22,7 +28,7 @@ void main() {
 
     // Tap the theme toggle button.
     await tester.tap(find.byIcon(Icons.brightness_6));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // The app should still show the same elements after theme toggle.
     expect(find.text('ShopLite'), findsOneWidget);
