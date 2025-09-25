@@ -11,26 +11,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shoplite/main.dart';
 
 void main() {
-  testWidgets('ShopLite app smoke test', (WidgetTester tester) async {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const ShopLiteApp());
+    await tester.pumpWidget(const MyApp());
 
-    // Wait for initial loading to complete
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
     await tester.pump();
-    
-    // Wait for async data loading to complete
-    await tester.pumpAndSettle();
 
-    // Verify that our app starts with the catalog page.
-    expect(find.text('ShopLite'), findsOneWidget);
-    expect(find.byIcon(Icons.search), findsOneWidget);
-    expect(find.byIcon(Icons.shopping_cart), findsOneWidget);
-
-    // Tap the theme toggle button.
-    await tester.tap(find.byIcon(Icons.brightness_6));
-    await tester.pumpAndSettle();
-
-    // The app should still show the same elements after theme toggle.
-    expect(find.text('ShopLite'), findsOneWidget);
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
   });
 }
