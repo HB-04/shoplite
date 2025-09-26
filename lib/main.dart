@@ -10,13 +10,14 @@ import 'presentation/providers/app_state_provider.dart';
 import 'core/constants/app_constants.dart';
 import 'core/constants/app_strings.dart';
 import 'core/di/service_locator.dart';
+import 'core/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize dependencies
   await ServiceLocator().init();
-  
+
   runApp(const ShopLiteApp());
 }
 
@@ -30,7 +31,7 @@ class ShopLiteApp extends StatelessWidget {
       child: Consumer<AppStateProvider>(
         builder: (context, appState, child) {
           return MaterialApp(
-            title: AppStrings.appName,
+            title: AppStrings.appName(context),
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: appState.themeMode,
@@ -40,15 +41,7 @@ class ShopLiteApp extends StatelessWidget {
               AppConstants.catalogRoute: (context) => const CatalogPage(),
               AppConstants.cartRoute: (context) => const CartPage(),
             },
-            onGenerateRoute: (settings) {
-              if (settings.name == AppConstants.productDetailRoute) {
-                final productId = settings.arguments as int;
-                return MaterialPageRoute(
-                  builder: (context) => ProductDetailPage(productId: productId),
-                );
-              }
-              return null;
-            },
+            onGenerateRoute: AppRouter.generateRoute,
           );
         },
       ),

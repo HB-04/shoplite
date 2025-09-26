@@ -1,75 +1,66 @@
+import 'package:flutter/widgets.dart';
+import '../helpers/app_strings_helper.dart';
+
 class AppStrings {
-  // General
-  static const String appName = 'ShopLite';
-  static const String loading = 'Loading...';
-  static const String error = 'Error';
-  static const String retry = 'Retry';
-  static const String ok = 'OK';
-  static const String cancel = 'Cancel';
-  static const String save = 'Save';
-  static const String delete = 'Delete';
-  
-  // Auth
-  static const String login = 'Login';
-  static const String logout = 'Logout';
-  static const String email = 'Email';
-  static const String password = 'Password';
-  static const String loginError = 'Invalid email or password';
-  static const String loginSuccess = 'Login successful';
-  
-  // Catalog
-  static const String products = 'Products';
-  static const String searchProducts = 'Search products...';
-  static const String noProductsFound = 'No products found';
-  static const String loadMore = 'Load More';
-  static const String pullToRefresh = 'Pull to refresh';
-  static const String category = 'Category';
-  static const String allCategories = 'All Categories';
-  
-  // Product Detail
-  static const String productDetails = 'Product Details';
-  static const String addToCart = 'Add to Cart';
-  static const String addedToCart = 'Added to cart';
-  static const String addToFavorites = 'Add to Favorites';
-  static const String removeFromFavorites = 'Remove from Favorites';
-  static const String rating = 'Rating';
-  static const String reviews = 'Reviews';
-  static const String description = 'Description';
-  
-  // Cart
-  static const String cart = 'Cart';
-  static const String emptyCart = 'Your cart is empty';
-  static const String cartTotal = 'Total';
-  static const String checkout = 'Checkout';
-  static const String quantity = 'Quantity';
-  static const String removeFromCart = 'Remove from cart';
-  static const String updateQuantity = 'Update quantity';
-  
-  // Checkout
-  static const String placeOrder = 'Place Order';
-  static const String orderPlaced = 'Order placed successfully!';
-  static const String orderSummary = 'Order Summary';
-  static const String totalAmount = 'Total Amount';
-  static const String paymentMethod = 'Payment Method';
-  static const String creditCard = 'Credit Card';
-  
-  // Offline
-  static const String offline = 'You are offline';
-  static const String offlineMessage = 'Some features may be limited';
-  static const String noInternetConnection = 'No internet connection';
-  static const String checkConnectionAndRetry = 'Please check your connection and try again';
-  
-  // Errors
-  static const String somethingWentWrong = 'Something went wrong';
-  static const String networkError = 'Network error occurred';
-  static const String serverError = 'Server error occurred';
-  static const String authenticationRequired = 'Authentication required';
-  static const String unauthorizedAccess = 'Unauthorized access';
-  
-  // Settings
-  static const String settings = 'Settings';
-  static const String theme = 'Theme';
-  static const String lightTheme = 'Light Theme';
-  static const String darkTheme = 'Dark Theme';
-  static const String systemTheme = 'System Theme';
+  static String translate(BuildContext context, String key) {
+    return AppStringsHelper.translate(context, key);
+  }
+
+  static String appName(BuildContext context) => translate(context, 'appName');
+  static String loading(BuildContext context) => translate(context, 'loading');
+  static String error(BuildContext context) => translate(context, 'error');
+  static String retry(BuildContext context) => translate(context, 'retry');
+  static String ok(BuildContext context) => translate(context, 'ok');
+  static String cancel(BuildContext context) => translate(context, 'cancel');
+  static String save(BuildContext context) => translate(context, 'save');
+  static String delete(BuildContext context) => translate(context, 'delete');
+  static String login(BuildContext context) => translate(context, 'loginTitle');
+  static String logout(BuildContext context) => translate(context, 'logout');
+  static String email(BuildContext context) => translate(context, 'emailField');
+  static String password(BuildContext context) => translate(context, 'passwordField');
+  static String loginError(BuildContext context) => translate(context, 'loginError');
+  static String loginSuccess(BuildContext context) => translate(context, 'loginSuccess');
+  static String products(BuildContext context) => translate(context, 'catalogTitle');
+  static String searchProducts(BuildContext context) => translate(context, 'searchHint');
+  static String noProductsFound(BuildContext context) => translate(context, 'noProductsFound');
+  static String loadMore(BuildContext context) => translate(context, 'loadMore');
+  static String pullToRefresh(BuildContext context) => translate(context, 'pullToRefresh');
+  static String category(BuildContext context) => translate(context, 'category');
+  static String allCategories(BuildContext context) => translate(context, 'categoryAll');
+  static String productDetails(BuildContext context) => translate(context, 'productDetails');
+  static String addToCart(BuildContext context) => translate(context, 'addToCart');
+  static String addedToCart(BuildContext context) => translate(context, 'addedToCart');
+  static String addToFavorites(BuildContext context) => translate(context, 'addToFavorites');
+  static String removeFromFavorites(BuildContext context) => translate(context, 'removeFromFavorites');
+  static String rating(BuildContext context) => translate(context, 'rating');
+  static String reviews(BuildContext context) => translate(context, 'reviews');
+  static String description(BuildContext context) => translate(context, 'description');
+  static String cart(BuildContext context) => translate(context, 'cartLabel');
+  static String emptyCart(BuildContext context) => translate(context, 'emptyCart');
+  static String cartTotal(BuildContext context) => translate(context, 'cartTotal');
+  static String checkout(BuildContext context) => translate(context, 'checkout');
+  static String quantity(BuildContext context) => translate(context, 'quantity');
+  static String removeFromCart(BuildContext context) => translate(context, 'removeFromCart');
+  static String updateQuantity(BuildContext context) => translate(context, 'updateQuantity');
+  static String placeOrder(BuildContext context) => translate(context, 'placeOrder');
+  static String orderPlaced(BuildContext context) => translate(context, 'orderSuccess');
+  static String orderSummary(BuildContext context) => translate(context, 'orderSummary');
+  static String totalAmount(BuildContext context) => translate(context, 'totalAmount');
+  static String paymentMethod(BuildContext context) => translate(context, 'paymentMethod');
+  static String creditCard(BuildContext context) => translate(context, 'creditCard');
+  static String offline(BuildContext context) => translate(context, 'offline');
+  static String offlineMessage(BuildContext context) => translate(context, 'offlineBanner');
+  static String noInternetConnection(BuildContext context) => translate(context, 'noInternetConnection');
+  static String checkConnectionAndRetry(BuildContext context) => translate(context, 'checkConnectionAndRetry');
+  static String somethingWentWrong(BuildContext context) => translate(context, 'error');
+  static String networkError(BuildContext context) => translate(context, 'networkError');
+  static String serverError(BuildContext context) => translate(context, 'serverError');
+  static String authenticationRequired(BuildContext context) => translate(context, 'authenticationRequired');
+  static String unauthorizedAccess(BuildContext context) => translate(context, 'unauthorizedAccess');
+  static String settings(BuildContext context) => translate(context, 'settings');
+  static String theme(BuildContext context) => translate(context, 'theme');
+  static String lightTheme(BuildContext context) => translate(context, 'lightTheme');
+  static String darkTheme(BuildContext context) => translate(context, 'darkTheme');
+  static String systemTheme(BuildContext context) => translate(context, 'systemTheme');
+  static String changeLanguage(BuildContext context) => translate(context, 'languageToggle');
 }

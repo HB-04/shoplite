@@ -62,7 +62,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildErrorState(AppStateProvider appState) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.productDetails),
+        title: Text(AppStrings.productDetails(context)),
       ),
       body: Center(
         child: Column(
@@ -75,7 +75,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              appState.productDetailError ?? AppStrings.somethingWentWrong,
+              appState.productDetailError ?? AppStrings.somethingWentWrong(context),
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -83,7 +83,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ElevatedButton.icon(
               onPressed: () => appState.loadProductDetail(widget.productId),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(AppStrings.retry(context)),
             ),
           ],
         ),
@@ -94,7 +94,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildNotFoundState() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.productDetails),
+        title: Text(AppStrings.productDetails(context)),
       ),
       body: const Center(
         child: Text('Product not found'),
@@ -229,7 +229,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                   // Description
                   Text(
-                    AppStrings.description,
+                    AppStrings.description(context),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -276,8 +276,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
               label: Text(
                 product.isFavorite 
-                    ? AppStrings.removeFromFavorites 
-                    : AppStrings.addToFavorites,
+                    ? AppStrings.removeFromFavorites(context)
+                    : AppStrings.addToFavorites(context),
               ),
             ),
             const SizedBox(width: 16),
@@ -289,7 +289,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ? () => _handleAddToCart(context, appState, product)
                     : null,
                 icon: const Icon(Icons.add_shopping_cart),
-                label: const Text(AppStrings.addToCart),
+                label: Text(AppStrings.addToCart(context)),
               ),
             ),
           ],
@@ -308,7 +308,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ? 'Added to favorites'
                 : 'Removed from favorites',
           ),
-          duration: const Duration(seconds: 1),
+          duration: Duration(seconds: 1),
         ),
       );
     }
@@ -323,9 +323,27 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final success = await appState.addToCart(product);
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.addedToCart),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(AppStrings.addedToCart(context)),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.pushNamed(context, AppConstants.cartRoute);
+            },
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: Duration(seconds: 2),
         ),
       );
     }
@@ -343,8 +361,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   void _showLoginRequired(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(AppStrings.authenticationRequired),
+        SnackBar(
+        content: Text(AppStrings.authenticationRequired(context)),
         duration: Duration(seconds: 2),
       ),
     );

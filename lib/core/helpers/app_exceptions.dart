@@ -49,3 +49,10 @@ class UnknownException extends AppException {
     String message = 'An unknown error occurred',
   }) : super(message: message);
 }
+
+class UnauthorizedException extends AuthenticationException {
+  const UnauthorizedException({
+    required String message,
+    int? statusCode,
+  }) : super(message: message, statusCode: statusCode);
+}

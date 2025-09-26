@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
@@ -16,7 +17,7 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.cart),
+        title: Text(AppStrings.cart(context)),
         actions: [
           Consumer<AppStateProvider>(
             builder: (context, appState, child) {
@@ -74,7 +75,7 @@ class _CartPageState extends State<CartPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            appState.cartError ?? AppStrings.somethingWentWrong,
+            appState.cartError ?? AppStrings.somethingWentWrong(context),
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -85,7 +86,7 @@ class _CartPageState extends State<CartPage> {
               appState.clearCartError();
             },
             icon: const Icon(Icons.refresh),
-            label: const Text(AppStrings.retry),
+            label: Text(AppStrings.retry(context)),
           ),
         ],
       ),
@@ -104,7 +105,7 @@ class _CartPageState extends State<CartPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            AppStrings.emptyCart,
+            AppStrings.emptyCart(context),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
@@ -214,7 +215,7 @@ class _CartPageState extends State<CartPage> {
         child: ElevatedButton.icon(
           onPressed: () => _handleCheckout(context, appState),
           icon: const Icon(Icons.payment),
-          label: Text('${AppStrings.checkout} - \$${appState.cartTotal.toStringAsFixed(2)}'),
+          label: Text('${AppStrings.checkout(context)} - \$${appState.cartTotal.toStringAsFixed(2)}'),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
@@ -244,8 +245,8 @@ class _CartPageState extends State<CartPage> {
     final success = await appState.removeFromCart(productId);
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.removeFromCart),
+        SnackBar(
+          content: Text(AppStrings.removeFromCart(context)),
           duration: Duration(seconds: 1),
         ),
       );
@@ -264,7 +265,7 @@ class _CartPageState extends State<CartPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(AppStrings.orderSummary),
+        title: Text(AppStrings.orderSummary(context)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,60 +280,279 @@ class _CartPageState extends State<CartPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.cancel),
+            child: Text(AppStrings.cancel(context)),
           ),
           ElevatedButton(
             onPressed: () => _processOrder(context, appState),
-            child: const Text(AppStrings.placeOrder),
+            child: Text(AppStrings.placeOrder(context)),
           ),
         ],
       ),
     );
   }
 
-  void _processOrder(BuildContext context, AppStateProvider appState) async {
-    Navigator.pop(context); // Close dialog
+  Future<void> _processOrder(BuildContext context, AppStateProvider appState) async {
+    try {
+      Navigator.pop(context); // Close confirmation dialog
 
-    // Mock order processing
-    showDialog(
+      // Show processing dialog with animation
+      BuildContext? dialogContext;
+      await showDialog(
       context: context,
       barrierDismissible: false,
+        builder: (BuildContext context) {
+          dialogContext = context;
+          return WillPopScope(
+            onWillPop: () async {
+              // Allow back navigation during processing
+              final shouldPop = await showDialog<bool>(
+                context: context,
       builder: (context) => AlertDialog(
-        content: Row(
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Processing order...'),
+                  title: const Text('Cancel Order?'),
+                  content: const Text('Are you sure you want to cancel the order processing?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('NO'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('YES'),
+                    ),
+                  ],
+                ),
+              ) ?? false;
+              return shouldPop;
+            },
+            child: Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Loading animation with rotating and scaling icon
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              TweenAnimationBuilder<double>(
+                                tween: Tween<double>(begin: 0.0, end: 2 * 3.14159),
+                                duration: const Duration(seconds: 2),
+                                curve: Curves.linear,
+                                builder: (context, rotation, child) {
+                                  return Transform.rotate(
+                                    angle: rotation,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                            blurRadius: 16,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: SizedBox(
+                                        width: 50,
+                                        height: 50,
+                                        child: CircularProgressIndicator(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          strokeWidth: 3,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween<double>(begin: 0.8, end: 1.2),
+                                duration: const Duration(milliseconds: 1000),
+                                curve: Curves.easeInOut,
+                                builder: (context, scale, child) {
+                                  return Transform.scale(
+                                    scale: scale,
+                                    child: Icon(
+                                      Icons.shopping_cart_outlined,
+                                      size: 24,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Processing your order...',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please wait while we confirm your order',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
           ],
         ),
       ),
+            ),
+          );
+        },
     );
 
-    // Simulate processing time
+      // Simulate processing time and clear cart
     await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      Navigator.pop(context); // Close loading dialog
-      
-      // Clear cart
       await appState.clearCart();
 
-      // Show success
-      if (mounted) {
-        showDialog(
+      // Close processing dialog if still mounted and dialog context exists
+      if (mounted && dialogContext != null) {
+        Navigator.of(dialogContext!).pop(); // Close processing dialog
+
+        // Show success dialog with animation
+        await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Order Placed!'),
-            content: const Text(AppStrings.orderPlaced),
-            actions: [
-              ElevatedButton(
+          barrierDismissible: false,
+          builder: (context) => WillPopScope(
+            onWillPop: () async => false,
+            child: Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 500),
+                tween: Tween(begin: 0.0, end: 1.0),
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Success icon with animation
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 800),
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        builder: (context, value, child) {
+                          return Transform.scale(
+                            scale: value,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.check_circle_outline,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 48,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Order Placed Successfully!',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppStrings.orderPlaced(context),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Thank you for shopping with us!',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context); // Close dialog
                   Navigator.pop(context); // Go back to catalog
                 },
-                child: const Text(AppStrings.ok),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                          child: Text(
+                            'Continue Shopping',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Handle any errors
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to process order: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -348,7 +568,7 @@ class _CartPageState extends State<CartPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.cancel),
+            child: Text(AppStrings.cancel(context)),
           ),
           ElevatedButton(
             onPressed: () {

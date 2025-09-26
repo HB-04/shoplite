@@ -43,12 +43,12 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(AppStrings.loginSuccess)),
+            SnackBar(content: Text(AppStrings.loginSuccess(context))),
           );
           Navigator.pushReplacementNamed(context, '/catalog');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(appState.authError ?? AppStrings.loginError)),
+            SnackBar(content: Text(appState.authError ?? AppStrings.loginError(context))),
           );
         }
       }
@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                AppStrings.appName,
+                AppStrings.appName(context),
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
@@ -88,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      AppStrings.login,
+                      AppStrings.login(context),
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -118,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: AppStrings.password,
+                        labelText: AppStrings.password(context),
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -158,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(AppStrings.login),
+                              : Text(AppStrings.login(context)),
                         );
                       },
                     ),

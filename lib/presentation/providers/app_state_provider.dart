@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/cart_item.dart';
@@ -9,9 +10,52 @@ import '../../domain/repositories/favorites_repository.dart';
 import '../../core/helpers/app_exceptions.dart';
 import '../../core/helpers/result.dart';
 
+const Map<String, Map<String, String>> _localizedValues = {
+  'en': {
+    'appName': 'ShopLite',
+    'catalogTitle': 'Products',
+    'searchHint': 'Search products...',
+    'categoryAll': 'All Categories',
+    'favoritesLabel': 'Favorites',
+    'cartLabel': 'Cart',
+    'addToCart': 'Add',
+    'loginTitle': 'Login',
+    'loginButton': 'Login',
+    'loginSuccess': 'Login successful',
+    'loginError': 'Invalid credentials',
+    'offlineBanner': 'Offline Mode: Showing cached products',
+    'emptyCart': 'Your cart is empty',
+    'placeOrder': 'Place Order',
+    'orderSuccess': 'Order placed successfully!',
+    'retry': 'Retry',
+    'loading': 'Loading...',
+    'languageToggle': 'Language',
+  },
+  'hi': {
+    'appName': 'शॉपलाइट',
+    'catalogTitle': 'उत्पाद',
+    'searchHint': 'उत्पाद खोजें...',
+    'categoryAll': 'सभी श्रेणियाँ',
+    'favoritesLabel': 'पसंदीदा',
+    'cartLabel': 'कार्ट',
+    'addToCart': 'जोड़ें',
+    'loginTitle': 'लॉगिन',
+    'loginButton': 'लॉगिन',
+    'loginSuccess': 'लॉगिन सफल',
+    'loginError': 'गलत प्रमाण',
+    'offlineBanner': 'ऑफ़लाइन मोड: कैश्ड उत्पाद दिखा रहे हैं',
+    'emptyCart': 'आपकी कार्ट खाली है',
+    'placeOrder': 'ऑर्डर करें',
+    'orderSuccess': 'ऑर्डर सफलतापूर्वक पूरा हुआ!',
+    'retry': 'पुनः प्रयास करें',
+    'loading': 'लोड हो रहा है...',
+    'languageToggle': 'भाषा',
+  }
+};
+
 enum AppConnectionStatus { online, offline, unknown }
 
-class AppStateProvider with ChangeNotifier {
+class AppStateProvider extends ChangeNotifier {
   final ProductRepository _productRepository;
   final AuthRepository _authRepository;
   final CartRepository _cartRepository;
@@ -34,6 +78,8 @@ class AppStateProvider with ChangeNotifier {
   AppConnectionStatus _connectionStatus = AppConnectionStatus.unknown;
   ThemeMode _themeMode = ThemeMode.system;
   String? _errorMessage;
+  Locale _currentLocale = const Locale('en');
+  String? _pendingDeepLinkProductId;
 
   // Auth state
   User? _currentUser;
@@ -74,6 +120,7 @@ class AppStateProvider with ChangeNotifier {
   AppConnectionStatus get connectionStatus => _connectionStatus;
   ThemeMode get themeMode => _themeMode;
   String? get errorMessage => _errorMessage;
+  Locale get currentLocale => _currentLocale;
 
   // Auth getters
   User? get currentUser => _currentUser;
@@ -107,6 +154,53 @@ class AppStateProvider with ChangeNotifier {
   Product? get selectedProduct => _selectedProduct;
   bool get isProductDetailLoading => _isProductDetailLoading;
   String? get productDetailError => _productDetailError;
+
+  static AppStateProvider of(BuildContext context, {bool listen = true}) {
+    return Provider.of<AppStateProvider>(context, listen: listen);
+  }
+
+  String translate(String key) {
+    final languageCode = _currentLocale.languageCode;
+    final values = _localizedValues[languageCode] ?? _localizedValues['en']!;
+    return values[key] ?? key;
+  }
+
+  void toggleLocale() {
+    _currentLocale = _currentLocale.languageCode == 'en'
+        ? const Locale('hi')
+        : const Locale('en');
+    notifyListeners();
+  }
+
+  void setLocale(Locale locale) {
+    if (_currentLocale != locale) {
+      _currentLocale = locale;
+      notifyListeners();
+    }
+  }
+
+  void setInitialRoute(String route) {
+    final productId = _parseProductDeepLink(route);
+    if (productId != null) {
+      _pendingDeepLinkProductId = productId;
+    }
+  }
+
+  String? consumeDeepLinkProductId() {
+    final id = _pendingDeepLinkProductId;
+    _pendingDeepLinkProductId = null;
+    return id;
+  }
+
+  String? _parseProductDeepLink(String route) {
+    if (route.startsWith('/product/')) {
+      final id = route.replaceFirst('/product/', '');
+      if (int.tryParse(id) != null) {
+        return id;
+      }
+    }
+    return null;
+  }
 
   // App initialization
   Future<void> _initializeApp() async {

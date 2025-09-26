@@ -53,6 +53,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Remove unused variable
     return Scaffold(
       appBar: _buildAppBar(context),
       body: Column(
@@ -84,7 +85,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      title: const Text(AppStrings.appName),
+      title: Text(AppStrings.appName(context)),
       actions: [
         // Theme toggle
         Consumer<AppStateProvider>(
@@ -154,10 +155,10 @@ class _CatalogPageState extends State<CatalogPage> {
                   PopupMenuItem<String>(
                     value: 'logout',
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.logout),
                         SizedBox(width: 8),
-                        Text(AppStrings.logout),
+                        Text(AppStrings.logout(context)),
                       ],
                     ),
                   ),
@@ -172,7 +173,7 @@ class _CatalogPageState extends State<CatalogPage> {
               return IconButton(
                 icon: const Icon(Icons.login),
                 onPressed: () => Navigator.pushNamed(context, AppConstants.loginRoute),
-                tooltip: AppStrings.login,
+                tooltip: AppStrings.login(context),
               );
             }
           },
@@ -188,8 +189,8 @@ class _CatalogPageState extends State<CatalogPage> {
         builder: (context, appState, child) {
           return TextField(
             controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: AppStrings.searchProducts,
+            decoration: InputDecoration(
+              hintText: AppStrings.searchProducts(context),
               prefixIcon: Icon(Icons.search),
             ),
             onChanged: (value) {
@@ -313,7 +314,7 @@ class _CatalogPageState extends State<CatalogPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            appState.productsError ?? AppStrings.somethingWentWrong,
+            appState.productsError ?? AppStrings.somethingWentWrong(context),
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -321,7 +322,7 @@ class _CatalogPageState extends State<CatalogPage> {
           ElevatedButton.icon(
             onPressed: () => appState.refreshProducts(),
             icon: const Icon(Icons.refresh),
-            label: const Text(AppStrings.retry),
+            label: Text(AppStrings.retry(context)),
           ),
         ],
       ),
@@ -340,7 +341,7 @@ class _CatalogPageState extends State<CatalogPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            AppStrings.noProductsFound,
+            AppStrings.noProductsFound(context),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 24),
@@ -382,10 +383,10 @@ class _CatalogPageState extends State<CatalogPage> {
         SnackBar(
           content: Text(
             appState.isProductFavorite(productId)
-                ? 'Added to favorites'
-                : 'Removed from favorites',
+                ? AppStrings.addToFavorites(context)
+                : AppStrings.removeFromFavorites(context),
           ),
-          duration: const Duration(seconds: 1),
+          duration: Duration(seconds: 1),
         ),
       );
     }
@@ -400,9 +401,27 @@ class _CatalogPageState extends State<CatalogPage> {
     final success = await appState.addToCart(product);
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.addedToCart),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(AppStrings.addedToCart(context)),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.pushNamed(context, AppConstants.cartRoute);
+            },
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: Duration(seconds: 2),
         ),
       );
     }
@@ -410,8 +429,8 @@ class _CatalogPageState extends State<CatalogPage> {
 
   void _showLoginRequired(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(AppStrings.authenticationRequired),
+      SnackBar(
+        content: Text(AppStrings.authenticationRequired(context)),
         duration: Duration(seconds: 2),
       ),
     );
