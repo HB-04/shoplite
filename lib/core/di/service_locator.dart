@@ -1,3 +1,5 @@
+import 'package:shoplite/core/services/connectivity_service.dart';
+
 import '../../data/datasources/api_service.dart';
 import '../../data/datasources/local_storage_service.dart';
 import '../../data/repositories/product_repository_impl.dart';
@@ -18,6 +20,7 @@ class ServiceLocator {
   // Services
   ApiService? _apiService;
   LocalStorageService? _localStorageService;
+  ConnectivityService? _connectivityService;
 
   // Repositories
   ProductRepository? _productRepository;
@@ -33,6 +36,7 @@ class ServiceLocator {
     // Initialize services
     _localStorageService = await LocalStorageService.getInstance();
     _apiService = ApiService();
+    _connectivityService = ConnectivityService();
 
     // Initialize repositories
     _productRepository = ProductRepositoryImpl(
@@ -61,6 +65,7 @@ class ServiceLocator {
       authRepository: _authRepository!,
       cartRepository: _cartRepository!,
       favoritesRepository: _favoritesRepository!,
+      connectivityService: _connectivityService!,
     );
   }
 
@@ -77,6 +82,13 @@ class ServiceLocator {
       throw Exception('ServiceLocator not initialized. Call init() first.');
     }
     return _localStorageService!;
+  }
+
+  ConnectivityService get connectivityService {
+    if (_connectivityService == null) {
+      throw Exception('ServiceLocator not initialized. Call init() first.');
+    }
+    return _connectivityService!;
   }
 
   ProductRepository get productRepository {
@@ -117,8 +129,10 @@ class ServiceLocator {
   // Clean up resources
   void dispose() {
     _apiService?.dispose();
+    _connectivityService?.dispose();
     _apiService = null;
     _localStorageService = null;
+    _connectivityService = null;
     _productRepository = null;
     _authRepository = null;
     _cartRepository = null;

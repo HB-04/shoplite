@@ -88,6 +88,7 @@ class _LoadingShimmerState extends State<LoadingShimmer>
               padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Title placeholder
                   AnimatedBuilder(
@@ -112,7 +113,7 @@ class _LoadingShimmerState extends State<LoadingShimmer>
                       );
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   
                   // Subtitle placeholder
                   AnimatedBuilder(
@@ -162,7 +163,7 @@ class _LoadingShimmerState extends State<LoadingShimmer>
                       );
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   
                   // Button placeholder
                   AnimatedBuilder(

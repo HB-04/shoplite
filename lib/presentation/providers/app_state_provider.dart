@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/entities/product.dart';
@@ -9,6 +10,7 @@ import '../../domain/repositories/cart_repository.dart';
 import '../../domain/repositories/favorites_repository.dart';
 import '../../core/helpers/app_exceptions.dart';
 import '../../core/helpers/result.dart';
+import '../../core/services/connectivity_service.dart';
 
 const Map<String, Map<String, String>> _localizedValues = {
   'en': {
@@ -60,16 +62,19 @@ class AppStateProvider extends ChangeNotifier {
   final AuthRepository _authRepository;
   final CartRepository _cartRepository;
   final FavoritesRepository _favoritesRepository;
+  final ConnectivityService _connectivityService;
 
   AppStateProvider({
     required ProductRepository productRepository,
     required AuthRepository authRepository,
     required CartRepository cartRepository,
     required FavoritesRepository favoritesRepository,
+    required ConnectivityService connectivityService,
   })  : _productRepository = productRepository,
         _authRepository = authRepository,
         _cartRepository = cartRepository,
-        _favoritesRepository = favoritesRepository {
+        _favoritesRepository = favoritesRepository,
+        _connectivityService = connectivityService {
     _initializeApp();
   }
 
@@ -210,25 +215,23 @@ class AppStateProvider extends ChangeNotifier {
         // Auth failure is non-critical for initialization
       });
       
-      // Try to load categories and products      
-      try {
-        await _loadCategories();
-        await _loadProducts(refresh: true);
-        _connectionStatus = AppConnectionStatus.online;
-      } catch (e) {
-        // Network error during initialization
-        _connectionStatus = AppConnectionStatus.offline;
-        
-        // Load cached data if available
+      // Check connectivity first
+      final hasConnectivity = await _connectivityService.checkConnectivity();
+      _connectionStatus = hasConnectivity ? AppConnectionStatus.online : AppConnectionStatus.offline;
+      
+      // Try to load categories and products
+      if (hasConnectivity) {
         try {
-          await _loadCategories(); // This will try cache first
-          await _loadProducts(refresh: false); // This will load from cache
-        } catch (cacheError) {
-          // Cache error - set default categories and load fallback mock data
-          _categories = ['All Categories', 'Beauty', 'Fragrances', 'Furniture', 'Laptops', 'Smartphones'];
-          await _loadFallbackMockData();
-          _productsError = 'Showing demo products. Please check your connection for latest data.';
+          await _loadCategories();
+          await _loadProducts(refresh: true);
+        } catch (e) {
+          // Network error during initialization - try cached data
+          _connectionStatus = AppConnectionStatus.offline;
+          await _loadCachedData();
         }
+      } else {
+        // No connectivity - load from cache
+        await _loadCachedData();
       }
       
       // Load local data (these should not fail)
@@ -245,6 +248,9 @@ class AppStateProvider extends ChangeNotifier {
       _isInitialized = true;
       notifyListeners();
       
+      // Start periodic connectivity check
+      _startConnectivityCheck();
+      
     } catch (e) {
       // Critical initialization error
       _errorMessage = 'Failed to initialize app. Please restart.';
@@ -252,6 +258,54 @@ class AppStateProvider extends ChangeNotifier {
       _isInitialized = true;
       notifyListeners();
     }
+  }
+
+  Future<void> _loadCachedData() async {
+    try {
+      await _loadCategories(); // This will try cache first
+      await _loadProducts(refresh: false); // This will load from cache
+    } catch (cacheError) {
+      // Cache error - set default categories and load fallback mock data
+      _categories = ['All Categories', 'Beauty', 'Fragrances', 'Furniture', 'Laptops', 'Smartphones'];
+      await _loadFallbackMockData();
+      _productsError = 'Showing demo products. Please check your connection for latest data.';
+    }
+  }
+
+  Timer? _connectivityTimer;
+  
+  void _startConnectivityCheck() {
+    _connectivityTimer?.cancel();
+    
+    // Initial check
+    _connectivityService.checkConnectivity().then((hasConnectivity) {
+      _updateConnectivityStatus(hasConnectivity);
+    });
+
+    // Start listening for changes
+    _connectivityService.startListening((hasConnectivity) {
+      _updateConnectivityStatus(hasConnectivity);
+    });
+  }
+
+  void _updateConnectivityStatus(bool hasConnectivity) {
+    final newStatus = hasConnectivity ? AppConnectionStatus.online : AppConnectionStatus.offline;
+    if (_connectionStatus != newStatus) {
+      _connectionStatus = newStatus;
+      notifyListeners();
+      
+      // If we're back online, refresh data
+      if (hasConnectivity) {
+        refreshProducts();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _connectivityTimer?.cancel();
+    _connectivityService.dispose();
+    super.dispose();
   }
 
   // Auth methods
